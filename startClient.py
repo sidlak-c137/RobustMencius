@@ -1,39 +1,21 @@
 from mencius.client import Client
+from config import Configs
+import sys
 
 def main():
-    client = Client("127.0.0.1:8070", all_nodes={"server": "127.0.0.1:8080"}, requests=[
-        {
-            "command": {
-                "type": "PUT",
-                "key": "A",
-                "value": "1",
-            },
-            "server": "server",
-        },
-        {
-            "command": {
-                "type": "GET",
-                "key": "A",
-            },
-            "server": "server",
-        },
-        {
-            "command": {
-                "type": "PUT",
-                "key": "A",
-                "value": "3",
-            },
-            "server": "server",
-        },
-        {
-            "command": {
-                "type": "GET",
-                "key": "A",
-            },
-            "server": "server",
-        },
-    ])
+    config = Configs().two_clients_single_server()
+    client = Client(sys.argv[1], config=config)
     client.start_node()
+    for i in range(10000):
+        client.send_request({
+            "type": "PUT",
+            "key": "B",
+            "value": i,
+        }, "server1")
+        client.send_request({
+            "type": "GET",
+            "key": "B",
+        }, "server1")
 
 if __name__ == "__main__":
     main()

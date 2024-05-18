@@ -1,7 +1,10 @@
 from mencius.server import Server
+from config import Configs
+import sys
 
 def main():
-    server = Server("server", all_nodes={"server": "127.0.0.1:8080"}) 
+    config = Configs().two_clients_single_server()
+    server = Server(sys.argv[1], config=config) 
     server.start_node()
 
 if __name__ == "__main__":

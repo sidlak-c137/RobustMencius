@@ -1,66 +1,58 @@
-from mencius.utils import Message
-from .utils import Node
+from .utils import Message, Node, Timer
 from .messages import Request
+from .timers import RequestTimer
 import zmq
 import threading
 
+
 class Client(Node):
-    def __init__(self, name: str, all_nodes: dict = {}, requests: list = []):
-        super().__init__(name, all_nodes)
-        self.requests = requests
+    def __init__(self, name: str, config: dict = {}):
+        super().__init__(name, config)
         self.functions = {
             "Response": self.handle_response,
         }
+        self.timers = {
+            "RequestTimer": self.handle_request_timer,
+        }
         self.seq_num = 0
-    
-    def start_node(self):
-        class Listen(threading.Thread):
-            def run(thread):
-                while True:
-                    context = zmq.Context()
-                    socket = context.socket(zmq.REP)
-                    if self.name in self.all_nodes:
-                        name = self.all_nodes[self.name]
-                    else:
-                        name = self.name
-                    socket.bind("tcp://{}".format(name))
-                    message = Message.deserialize(socket.recv())
-                    print("Received: {}".format(message))
-                    self.handle(message)
-        
-        class Send(threading.Thread):
-            def run(thread):
-                context = zmq.Context()
-                socket = context.socket(zmq.REQ)
-                for i in range(len(self.requests)):
-                    command = Request({
-                        "AMOCommand": {
-                            "command": self.requests[self.seq_num]["command"],
-                            "clientAddr": self.name,
-                            "seqNum": self.seq_num,
-                        }
-                    })
-                    message, name = command, self.requests[self.seq_num]["server"]
-                    context = zmq.Context()
-                    socket = context.socket(zmq.REQ)
-                    if name in self.all_nodes:
-                        name = self.all_nodes[name]
-                    socket.connect("tcp://{}".format(name))
-                    socket.send(message.serialize())
-                    print("Sent: {}".format(message))
-                    socket.close()
-                    while i != self.seq_num - 1:
-                        continue
+        self.condition = threading.Condition()
 
-        self.listen_thread = Listen()
-        self.send_thread = Send()
-        self.listen_thread.start()
-        self.send_thread.start()
-            
+    def send_request(self, req, server):
+        with self.condition:
+            message = Request(
+                {
+                    "AMOCommand": {
+                        "command": req,
+                        "client": self.name,
+                        "seqNum": self.seq_num,
+                    }
+                }
+            )
+            self.send_message(message, server)
+            self.start_timer(
+                RequestTimer(
+                    {
+                        "message": message,
+                        "name": server,
+                    }
+                )
+            )
+            while message.args["AMOCommand"]["seqNum"] >= self.seq_num:
+                self.condition.wait()
 
-    def handle(self, message):
+    def handle_message(self, message):
         self.functions[message.message_type](**message.args)
-    
+
     def handle_response(self, AMOCommand: str, AMOResponse: str):
-        if AMOCommand["seqNum"] == self.seq_num:
-            self.seq_num += 1
+        with self.condition:
+            if AMOCommand["seqNum"] == self.seq_num:
+                self.seq_num += 1
+                self.condition.notify()
+
+    def handle_timer(self, timer: Timer):
+        self.timers[timer.timer_type](**timer.args)
+
+    def handle_request_timer(self, message, name):
+        if message.args["AMOCommand"]["seqNum"] >= self.seq_num:
+            self.send_message(message, name)
+            self.start_timer(RequestTimer({"message": message, "name": name}))

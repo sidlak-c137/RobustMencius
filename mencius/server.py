@@ -4,15 +4,15 @@ from .messages import Response
 import threading
 
 class Server(Node):
-    def __init__(self, name: str, all_nodes: dict = {}):
-        super().__init__(name, all_nodes)
+    def __init__(self, name: str, config: dict = {}):
+        super().__init__(name, config)
         self.functions = {
             "Request": self.handle_request,
         }
         self.application = AMOKVStore()
         self.lock = threading.Lock()
     
-    def handle(self, message):
+    def handle_message(self, message):
         self.functions[message.message_type](**message.args)
     
     def handle_request(self, AMOCommand: str):
@@ -21,4 +21,4 @@ class Server(Node):
                 "AMOCommand": AMOCommand,
                 "AMOResponse": self.application.execute(AMOCommand),
             })
-            self.send_message(response, AMOCommand["clientAddr"])
+            self.send_message(response, AMOCommand["client"])

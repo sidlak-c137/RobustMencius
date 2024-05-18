@@ -4,14 +4,14 @@ class AMOKVStore():
         self.clientMap = {}
     
     def alreadyExecuted(self, AMOCommand):
-        assert "clientAddr" in AMOCommand and "seqNum" in AMOCommand and "command" in AMOCommand
-        if AMOCommand["clientAddr"] in self.clientMap:
-            if AMOCommand["seqNum"] <= self.clientMap[AMOCommand["clientAddr"]]["seqNum"]:
+        assert "client" in AMOCommand and "seqNum" in AMOCommand and "command" in AMOCommand
+        if AMOCommand["client"] in self.clientMap:
+            if AMOCommand["seqNum"] <= self.clientMap[AMOCommand["client"]]["seqNum"]:
                 return True
 
     def execute(self, AMOCommand):
         if self.alreadyExecuted(AMOCommand):
-            return self.clientMap[AMOCommand["clientAddr"]]["response"]
+            return self.clientMap[AMOCommand["client"]]["response"]
         else:
             match AMOCommand["command"]["type"]:
                 case "GET":
@@ -28,7 +28,7 @@ class AMOKVStore():
                     response = self.kvstore.delete(AMOCommand["command"]["key"])
                 case _:
                     raise ValueError("Invalid command")
-            self.clientMap[AMOCommand["clientAddr"]] = {"seqNum": AMOCommand["seqNum"], "response": response}
+            self.clientMap[AMOCommand["client"]] = {"seqNum": AMOCommand["seqNum"], "response": response}
             return response
 
 class KVStore():
