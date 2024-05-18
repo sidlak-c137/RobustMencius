@@ -31,9 +31,10 @@ class Timer:
 
 
 class Node:
-    def __init__(self, name: str, config: dict = {}):
+    def __init__(self, name: str, config: dict = {}, logger=None):
         self.name = name
         self.config = config
+        self.logger = logger
         self.condition = threading.Condition()
         self.send_queue = []
 
@@ -45,13 +46,12 @@ class Node:
                 # Subscribe to all nodes (except self)
                 for name, port in self.config[self.name]["subscribe"]:
                     host = self.config[name]["host"]
-                    print(f"Subscribing to {name} on {host}:{port}")
+                    self.logger.info(f"Subscribing to {name} on {host}:{port}")
                     socket.connect(f"tcp://{host}:{port}")
                     socket.setsockopt(zmq.SUBSCRIBE, b'')
                 # Start listening for messages
                 while True:
                     message = Message.deserialize(socket.recv())
-                    print("Received: {}".format(message))
                     self.handle_message(message)
 
         class Send(threading.Thread):
@@ -62,7 +62,7 @@ class Node:
                     host = self.config[self.name]["host"]
                     socket = context.socket(zmq.PUB)
                     socket.sndhwm = 1100000
-                    print(f"Publishing to {name} on {host}:{port}")
+                    self.logger.info(f"Publishing to {name} on {host}:{port}")
                     socket.bind(f"tcp://{host}:{port}")
                     sockets[name] = socket
                 # Start sending messages
@@ -73,7 +73,7 @@ class Node:
                         message, name = self.send_queue.pop(0)
                         socket = sockets[name]
                         socket.send(message.serialize())
-                        print("-> {}: {}".format(name, message))
+                        self.logger.debug("-> {}: {}".format(name, message))
 
         self.listen_thread = Listen()
         self.send_thread = Send()

@@ -4,8 +4,8 @@ from .messages import Response
 import threading
 
 class Server(Node):
-    def __init__(self, name: str, config: dict = {}):
-        super().__init__(name, config)
+    def __init__(self, name: str, config: dict = {}, logger=None):
+        super().__init__(name, config, logger)
         self.functions = {
             "Request": self.handle_request,
         }

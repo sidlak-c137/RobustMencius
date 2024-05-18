@@ -6,8 +6,8 @@ import threading
 
 
 class Client(Node):
-    def __init__(self, name: str, config: dict = {}):
-        super().__init__(name, config)
+    def __init__(self, name: str, config: dict = {}, logger=None):
+        super().__init__(name, config, logger)
         self.functions = {
             "Response": self.handle_response,
         }
