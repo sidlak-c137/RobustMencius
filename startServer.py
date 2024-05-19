@@ -1,4 +1,4 @@
-from simple.server import Server
+from multipaxos.server import Server
 from config import Configs
 import sys
 import argparse
@@ -25,8 +25,12 @@ def main():
             logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger()
 
-    config = Configs().two_clients_single_server()
-    server = Server(args.name, config=config, logger=logger) 
+    config = Configs().three_clients_three_servers()
+    servers = []
+    for k in config:
+        if k.startswith("server"):
+            servers.append(k)
+    server = Server(args.name, config=config, logger=logger, servers=servers) 
     server.start_node()
 
 if __name__ == "__main__":

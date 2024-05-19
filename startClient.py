@@ -1,4 +1,4 @@
-from simple.client import Client
+from multipaxos.client import Client
 from config import Configs
 import argparse
 import logging
@@ -24,19 +24,20 @@ def main():
             logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger()
 
-    config = Configs().two_clients_single_server()
+    config = Configs().three_clients_three_servers()
     client = Client(args.name, config=config, logger=logger)
     client.start_node()
-    for i in range(5):
+    server = config[args.name]["publish"][0][0]
+    for i in range(100000):
         client.send_request({
             "type": "PUT",
             "key": "B",
             "value": i,
-        }, "server1")
+        }, server)
         client.send_request({
             "type": "GET",
             "key": "B",
-        }, "server1")
+        }, server)
     logger.info("Client %s has finished", args.name)
 if __name__ == "__main__":
     main()
