@@ -53,6 +53,7 @@ class Configs():
         return {
             "server1": {
                 "host": "127.0.0.1",
+                "wait": 0.003,
                 "publish": [("server2", "8080"), ("server3", "8081"), ("client1", "8082")],
                 "subscribe": [("server2", "8070"), ("server3", "8071"), ("client1", "8072")]
             },

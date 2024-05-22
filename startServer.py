@@ -1,13 +1,17 @@
-from multipaxos.server import Server
+from mencius.server import Server
 from config import Configs
-import sys
 import argparse
 import logging
 
+
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-n', '--name', type=str, required=True, help="The name of the server")
-    parser.add_argument('-g', '--debug', type=str, required=False, help="The name of the server")
+    parser.add_argument(
+        "-n", "--name", type=str, required=True, help="The name of the server"
+    )
+    parser.add_argument(
+        "-g", "--debug", type=str, required=False, help="The name of the server"
+    )
     args = parser.parse_args()
 
     match args.debug:
@@ -30,8 +34,9 @@ def main():
     for k in config:
         if k.startswith("server"):
             servers.append(k)
-    server = Server(args.name, config=config, logger=logger, servers=servers) 
+    server = Server(args.name, config=config, logger=logger, servers=servers)
     server.start_node()
+
 
 if __name__ == "__main__":
     main()

@@ -215,6 +215,17 @@ class Server(Node):
                     if slot > self.slot_out and self.log[slot][2] == "ACCEPTED":
                         self.proposal_replies[slot] = set()
                         self.log[slot] = (self.ballot, self.log[slot][1], "CHOSEN")
+                        self.broadcast_message(
+                            Heartbeat(
+                                {
+                                    "ballot": self.ballot,
+                                    "log": {slot: self.log[slot]},
+                                    "min_slot_out": self.local_garbage,
+                                    "sender": self.name,
+                                }
+                            ),
+                            self.servers_minus_self,
+                        )
                     self.executeAll()
                     self.garbage_map[self.name] = self.slot_out
 

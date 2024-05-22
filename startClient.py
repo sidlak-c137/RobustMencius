@@ -1,12 +1,17 @@
-from multipaxos.client import Client
+from mencius.client import Client
 from config import Configs
 import argparse
 import logging
 
+
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-n', '--name', type=str, required=True, help="The name of the client")
-    parser.add_argument('-g', '--debug', type=str, required=False, help="The name of the client")
+    parser.add_argument(
+        "-n", "--name", type=str, required=True, help="The name of the client"
+    )
+    parser.add_argument(
+        "-g", "--debug", type=str, required=False, help="The name of the client"
+    )
     args = parser.parse_args()
 
     match args.debug:
@@ -28,16 +33,24 @@ def main():
     client = Client(args.name, config=config, logger=logger)
     client.start_node()
     server = config[args.name]["publish"][0][0]
-    for i in range(100000):
-        client.send_request({
-            "type": "PUT",
-            "key": "B",
-            "value": i,
-        }, server)
-        client.send_request({
-            "type": "GET",
-            "key": "B",
-        }, server)
+    for i in range(10000):
+        client.send_request(
+            {
+                "type": "PUT",
+                "key": f"{args.name}",
+                "value": i,
+            },
+            server,
+        )
+        client.send_request(
+            {
+                "type": "GET",
+                "key": f"{args.name}",
+            },
+            server,
+        )
     logger.info("Client %s has finished", args.name)
+
+
 if __name__ == "__main__":
     main()
