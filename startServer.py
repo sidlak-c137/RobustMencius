@@ -5,6 +5,7 @@ from simple.server import Server as SimpleServer
 from config import Configs
 import argparse
 import logging
+import os
 
 
 def main():
@@ -20,6 +21,9 @@ def main():
     )
     parser.add_argument(
         "-g", "--debug", type=str, required=False, help="The name of the client"
+    )
+    parser.add_argument(
+        "-l", "--log", type=str, required=False, help="The name of the file to log to"
     )
     args = parser.parse_args()
 
@@ -37,6 +41,10 @@ def main():
         case _:
             raise ValueError("Invalid debug level")
     logger = logging.getLogger()
+    if args.log:
+        os.makedirs(os.path.dirname(args.log), exist_ok=True)
+        fh = logging.FileHandler(args.log)
+        logger.addHandler(fh)
 
     match args.config:
         case "three_clients_three_servers":

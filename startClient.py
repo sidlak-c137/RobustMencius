@@ -4,6 +4,8 @@ from multipaxos.client import Client as MultipaxosClient
 from config import Configs
 import argparse
 import logging
+import os
+
 
 
 def main():
@@ -41,6 +43,7 @@ def main():
             raise ValueError("Invalid debug level")
     logger = logging.getLogger()
     if args.log:
+        os.makedirs(os.path.dirname(args.log), exist_ok=True)
         fh = logging.FileHandler(args.log)
         logger.addHandler(fh)
 
