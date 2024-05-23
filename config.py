@@ -23,12 +23,12 @@ class Configs():
 
         return {
             "server1": {
-                "publish": [("client1", "10.10.4.1:8080")],
-                "subscribe": [("client1", "10.10.4.2:8070")]
+                "publish": [("client1", "10.10.4.2:8080")],
+                "subscribe": [("client1", "10.10.4.1:8070")]
             },
             "client1": {
-                "publish": [("server1", "10.10.4.2:8070")],
-                "subscribe": [("server1", "10.10.4.1:8080")],
+                "publish": [("server1", "10.10.4.1:8070")],
+                "subscribe": [("server1", "10.10.4.2:8080")],
             }
         }
     
