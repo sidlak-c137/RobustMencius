@@ -45,9 +45,8 @@ class Node:
                 socket = context.socket(zmq.SUB)
                 # Subscribe to all nodes (except self)
                 for name, port in self.config[self.name]["subscribe"]:
-                    host = self.config[name]["host"]
-                    self.logger.info(f"Subscribing to {name} on {host}:{port}")
-                    socket.connect(f"tcp://{host}:{port}")
+                    self.logger.info(f"Subscribing to {name} on {port}")
+                    socket.connect(f"tcp://{port}")
                     socket.setsockopt(zmq.SUBSCRIBE, b"")
                 # Start listening for messages
                 while True:
@@ -61,11 +60,10 @@ class Node:
                 sockets = {}
                 for name, port in self.config[self.name]["publish"]:
                     context = zmq.Context()
-                    host = self.config[self.name]["host"]
                     socket = context.socket(zmq.PUB)
                     socket.sndhwm = 1100000
-                    self.logger.info(f"Publishing to {name} on {host}:{port}")
-                    socket.bind(f"tcp://{host}:{port}")
+                    self.logger.info(f"Publishing to {name} on {port}")
+                    socket.bind(f"tcp://{port}")
                     sockets[name] = socket
                 # Start sending messages
                 while True:

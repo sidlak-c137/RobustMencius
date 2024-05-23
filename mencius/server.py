@@ -108,7 +108,6 @@ class Server(Node):
             while skip_till >= self.slot_out:
                 skip_till = self.get_prev_slot(sender, skip_till)
                 if skip_till not in self.log and skip_till >= self.slot_out:
-                    self.logger.debug(f"Skipping slot {skip_till}")
                     self.log[skip_till] = (None, "CHOSEN")
             self.executeAll()
             self.garbage_map[self.name] = self.slot_out

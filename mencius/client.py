@@ -2,6 +2,7 @@ from .utils import Message, Node, Timer
 from .messages import Request
 from .timers import RequestTimer
 import zmq
+import time
 import threading
 
 
@@ -28,6 +29,7 @@ class Client(Node):
                     }
                 }
             )
+            self.logger.info(f"{time.time()} {self.name} {self.seq_num}")
             self.send_message(message, server)
             self.start_timer(
                 RequestTimer(
@@ -39,17 +41,14 @@ class Client(Node):
             )
             while message.args["AMOCommand"]["seqNum"] >= self.seq_num:
                 self.condition.wait()
-                self.logger.info(f"Woke up after being notified")
 
     def handle_message(self, message):
         self.functions[message.message_type](**message.args)
 
     def handle_response(self, AMOCommand: str, AMOResponse: str):
         with self.condition:
-            self.logger.info(f"Received response {AMOResponse} for command {AMOCommand}")
             if AMOCommand["seqNum"] == self.seq_num:
                 self.seq_num += 1
-                self.logger.info(f"Updated seq_num to {self.seq_num}, notified")
                 self.condition.notify_all()
 
 
