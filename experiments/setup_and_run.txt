@@ -1,0 +1,53 @@
+************************************************************************************************************************************************************************************
+git clone git@github.com:sidlak-c137/RobustMencius.git && cd RobustMencius
+sudo apt-get update
+sudo apt-get install -y python3-pip
+sudo apt install -y python3-virtualenv
+sudo apt install -y python3-venv
+python3 -m venv py312 && source ./py312/bin/activate
+pip install -r requirements.txt
+************************************************************************************************************************************************************************************
+
+
+
+************************************************************************************************************************************************************************************
+python3 startServer.py -n server1 -t multipaxos -c three_clients_three_servers_cl -g INFO
+python3 startServer.py -n server2 -t multipaxos -c three_clients_three_servers_cl -g INFO
+python3 startServer.py -n server3 -t multipaxos -c three_clients_three_servers_cl -g INFO
+
+python3 startClient.py -n client1 -t multipaxos -c three_clients_three_servers_cl -g INFO -l ./experiments/multipaxos_default/client1.txt
+python3 startClient.py -n client2 -t multipaxos -c three_clients_three_servers_cl -g INFO -l ./experiments/multipaxos_default/client2.txt
+python3 startClient.py -n client3 -t multipaxos -c three_clients_three_servers_cl -g INFO -l ./experiments/multipaxos_default/client3.txt
+************************************************************************************************************************************************************************************
+
+
+************************************************************************************************************************************************************************************
+python3 startServer.py -n server1 -t multipaxos -c three_clients_three_servers_cl_slow -g INFO
+python3 startServer.py -n server2 -t multipaxos -c three_clients_three_servers_cl_slow -g INFO
+python3 startServer.py -n server3 -t multipaxos -c three_clients_three_servers_cl_slow -g INFO
+
+python3 startClient.py -n client1 -t multipaxos -c three_clients_three_servers_cl_slow -g INFO -l ./experiments/multipaxos_slow/client1.txt
+python3 startClient.py -n client2 -t multipaxos -c three_clients_three_servers_cl_slow -g INFO -l ./experiments/multipaxos_slow/client2.txt
+python3 startClient.py -n client3 -t multipaxos -c three_clients_three_servers_cl_slow -g INFO -l ./experiments/multipaxos_slow/client3.txt
+************************************************************************************************************************************************************************************
+
+
+************************************************************************************************************************************************************************************
+python3 startServer.py -n server1 -t mencius -c three_clients_three_servers_cl -g INFO
+python3 startServer.py -n server2 -t mencius -c three_clients_three_servers_cl -g INFO
+python3 startServer.py -n server3 -t mencius -c three_clients_three_servers_cl -g INFO
+
+python3 startClient.py -n client1 -t mencius -c three_clients_three_servers_cl -g INFO -l ./experiments/mencius_default/client1.txt
+python3 startClient.py -n client2 -t mencius -c three_clients_three_servers_cl -g INFO -l ./experiments/mencius_default/client2.txt
+python3 startClient.py -n client3 -t mencius -c three_clients_three_servers_cl -g INFO -l ./experiments/mencius_default/client3.txt
+************************************************************************************************************************************************************************************
+
+
+************************************************************************************************************************************************************************************
+python3 startServer.py -n server1 -t mencius -c three_clients_three_servers_cl_slow -g INFO
+python3 startServer.py -n server2 -t mencius -c three_clients_three_servers_cl_slow -g INFO
+python3 startServer.py -n server3 -t mencius -c three_clients_three_servers_cl_slow -g INFO
+
+python3 startClient.py -n client1 -t mencius -c three_clients_three_servers_cl_slow -g INFO -l ./experiments/mencius_slow/client1.txt
+python3 startClient.py -n client2 -t mencius -c three_clients_three_servers_cl_slow -g INFO -l ./experiments/mencius_slow/client2.txt
+python3 startClient.py -n client3 -t mencius -c three_clients_three_servers_cl_slow -g INFO -l ./experiments/mencius_slow/client3.txt
