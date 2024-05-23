@@ -2,7 +2,7 @@ from .utils import Timer
 
 class RequestTimer(Timer):
     def __init__(self, args: dict = {}):
-        super().__init__("RequestTimer", 100, args)
+        super().__init__("RequestTimer", 200, args)
         proto_args = set({
             "message": "request message",
             "name": "server name",

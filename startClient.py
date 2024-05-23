@@ -48,6 +48,8 @@ def main():
             config = Configs().single_client_single_server_cl()
         case "three_clients_three_servers_cl":
             config = Configs().three_clients_three_servers_cl()
+        case "three_clients_three_servers_cl_slow":
+            config = Configs().three_clients_three_servers_cl_slow()
         case _:
             raise ValueError("Invalid config")
     

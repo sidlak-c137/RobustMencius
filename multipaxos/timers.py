@@ -3,7 +3,7 @@ from .utils import Timer
 
 class RequestTimer(Timer):
     def __init__(self, args: dict = {}):
-        super().__init__("RequestTimer", 100, args)
+        super().__init__("RequestTimer", 200, args)
         proto_args = set(
             {
                 "message": "request message",
@@ -16,7 +16,7 @@ class RequestTimer(Timer):
 
 class HeartbeatTimer(Timer):
     def __init__(self, args: dict = {}):
-        super().__init__("HeartbeatTimer", 25, args)
+        super().__init__("HeartbeatTimer", 50, args)
         proto_args = set(
             {
                 "ballot": "ballot",
@@ -28,7 +28,7 @@ class HeartbeatTimer(Timer):
 
 class HeartbeatCheckTimer(Timer):
     def __init__(self, args: dict = {}):
-        super().__init__("HeartbeatCheckTimer", 100, args)
+        super().__init__("HeartbeatCheckTimer", 200, args)
         proto_args = set({})
         if not proto_args == set(args.keys()):
             raise ValueError(
@@ -38,7 +38,7 @@ class HeartbeatCheckTimer(Timer):
 
 class PrepareTimer(Timer):
     def __init__(self, args: dict = {}):
-        super().__init__("PrepareTimer", 50, args)
+        super().__init__("PrepareTimer", 100, args)
         proto_args = set(
             {
                 "ballot": "ballot",
@@ -50,7 +50,7 @@ class PrepareTimer(Timer):
 
 class ProposeTimer(Timer):
     def __init__(self, args: dict = {}):
-        super().__init__("ProposeTimer", 50, args)
+        super().__init__("ProposeTimer", 100, args)
         proto_args = set(
             {
                 "ballot": "ballot",
