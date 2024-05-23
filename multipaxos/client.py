@@ -2,6 +2,7 @@ from .utils import Message, Node, Timer
 from .messages import Request
 from .timers import RequestTimer
 import zmq
+import time
 import threading
 
 
@@ -28,6 +29,7 @@ class Client(Node):
                     }
                 }
             )
+            self.logger.info(f"{time.time()} {self.name} {self.seq_num}")
             self.send_message(message, server)
             self.start_timer(
                 RequestTimer(
@@ -47,7 +49,7 @@ class Client(Node):
         with self.condition:
             if AMOCommand["seqNum"] == self.seq_num:
                 self.seq_num += 1
-                self.condition.notify()
+                self.condition.notify_all()
 
     def handle_timer(self, timer: Timer):
         self.timers[timer.timer_type](**timer.args)
