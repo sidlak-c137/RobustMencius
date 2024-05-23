@@ -20,6 +20,10 @@ def main():
     parser.add_argument(
         "-g", "--debug", type=str, required=False, help="The name of the client"
     )
+    parser.add_argument(
+        "-l", "--log", type=str, required=False, help="The name of the file to log to"
+    )
+
     args = parser.parse_args()
 
     match args.debug:
@@ -36,6 +40,9 @@ def main():
         case _:
             raise ValueError("Invalid debug level")
     logger = logging.getLogger()
+    if args.log:
+        fh = logging.FileHandler(args.log)
+        logger.addHandler(fh)
 
     match args.config:
         case "three_clients_three_servers":
@@ -65,7 +72,7 @@ def main():
 
     client.start_node()
     server = config[args.name]["publish"][0][0]
-    for i in range(10000):
+    for i in range(3000):
         client.send_request(
             {
                 "type": "PUT",
