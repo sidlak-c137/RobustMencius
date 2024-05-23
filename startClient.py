@@ -76,7 +76,7 @@ def main():
 
     client.start_node()
     server = config[args.name]["publish"][0][0]
-    for i in range(3000):
+    for i in range(2000):
         client.send_request(
             {
                 "type": "PUT",
