@@ -44,7 +44,8 @@ def main():
     logger = logging.getLogger()
     if args.log:
         os.makedirs(os.path.dirname(args.log), exist_ok=True)
-        fh = logging.FileHandler(args.log)
+        fh = logging.FileHandler(args.log, mode="w")
+        fh.setLevel(args.debug)
         logger.addHandler(fh)
 
     match args.config:
