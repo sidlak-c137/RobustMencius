@@ -1,15 +1,15 @@
 import os
 import matplotlib.pyplot as plt
 
-# The columns in the data that are floats
-FLOAT_COLS = [0, 2] 
-
 # The time, in ms, to check throughput for plotting
 THROUGHPUT_INTERVAL = 1000
 
 # Whether or not we trim, and if so, how much to trim
 TRIM = False
 TRIM_AMOUNT = 250
+
+# The columns in the data that are floats
+FLOAT_COLS = [0, 2] 
 
 # The file naming format
 def BENCHMARK_FILE_FORMAT(file):
@@ -101,7 +101,7 @@ def throughput_arr(arr):
 
     throughput = {}
     for timestamp in adjusted_timestamps:
-        second = timestamp // 1000  
+        second = timestamp // THROUGHPUT_INTERVAL  
         if second in throughput:
             throughput[second] += 1
         else:
@@ -144,13 +144,12 @@ def plot_throughput(throughput, name):
         y = [point[1] for point in data]
         plt.plot(x, y, color=colors[i % len(colors)], label=f'Client {i+1}') 
     
-    plt.xlabel('Time (in seconds)')
+    plt.xlabel(f'Time (in units of {THROUGHPUT_INTERVAL} ms)')
     plt.ylabel('Throughput')
     plt.title(f'Throughput Plot for {name}')
     plt.legend()
     plt.grid(True)
     plt.savefig(os.path.join(PLOTS_DIR, f'{name}_throughput.png'))
-
 
 
 if __name__ == "__main__":
