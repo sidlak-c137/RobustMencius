@@ -20,7 +20,6 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 PARENT_DIR = os.path.abspath(os.path.join(SCRIPT_DIR, os.pardir))
 RESULTS_DIR = os.path.join(PARENT_DIR, 'experiments_results')
 PLOTS_DIR = os.path.join(PARENT_DIR, 'experiments_plots')
-assert os.path.isdir(RESULTS_DIR), "Path is wrong!"
 
 def main():
     first = True
