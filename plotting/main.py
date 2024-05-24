@@ -9,7 +9,7 @@ TRIM = False
 TRIM_AMOUNT = 250
 
 # The columns in the data that are floats
-FLOAT_COLS = [0, 2] 
+FLOAT_COLS = [0] 
 
 # The file naming format
 def BENCHMARK_FILE_FORMAT(file):
