@@ -89,6 +89,7 @@ class Server(Node):
                 for i in range(old_slot, self.slot_in):
                     if self.is_leader(self.name, i):
                         self.log[i] = (None, "CHOSEN")
+                        self.skip_counter[self.name] += 1
                 self.executeAll()
                 self.garbage_map[self.name] = self.slot_out
                 self.garbage_collect(self.get_min_slot())
@@ -110,6 +111,7 @@ class Server(Node):
                 skip_till = self.get_prev_slot(sender, skip_till)
                 if skip_till not in self.log and skip_till >= self.slot_out:
                     self.log[skip_till] = (None, "CHOSEN")
+                    self.skip_counter[sender] += 1
             self.executeAll()
             self.garbage_map[self.name] = self.slot_out
             self.garbage_map[sender] = max(self.garbage_map.get(sender, 0), slot_out)
@@ -203,10 +205,6 @@ class Server(Node):
     def is_leader(self, server, i):
         with self.lock:
             return self.tiling[i % self.tiling_len] == self.servers.index(server)
-    
-    def get_leader(self, i):
-        with self.lock:
-            return self.servers[self.tiling[i % self.tiling_len]]
 
     def executeAll(self):
         with self.lock:
@@ -220,8 +218,6 @@ class Server(Node):
                         }
                     )
                     self.send_message(response, self.log[i][0]["client"])
-                else:
-                    self.skip_counter[self.get_leader(i)] += 1
                 i += 1
             self.slot_out = i
 
