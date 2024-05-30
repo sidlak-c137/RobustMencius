@@ -57,8 +57,12 @@ def main():
             config = Configs().single_client_single_server_cl()
         case "three_clients_three_servers_cl":
             config = Configs().three_clients_three_servers_cl()
-        case "three_clients_three_servers_cl_slow":
-            config = Configs().three_clients_three_servers_cl_slow()
+        case "three_clients_three_servers_cl_slow_0":
+            config = Configs().three_clients_three_servers_cl_slow_0()
+        case "three_clients_three_servers_cl_slow_1":
+            config = Configs().three_clients_three_servers_cl_slow_1()
+        case "three_clients_three_servers_cl_slow_2":
+            config = Configs().three_clients_three_servers_cl_slow_2()
         case _:
             raise ValueError("Invalid config")
     servers = []
