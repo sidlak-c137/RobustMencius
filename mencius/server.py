@@ -23,8 +23,8 @@ class Server(Node):
             "ProposeTimer": self.handle_propose_timer,
         }
 
-        self.tiling = [0, 1, 2]
-        self.tiling_len = 3
+        self.tiling = self.config["tiling"]
+        self.tiling_len = len(self.tiling)
         self.log = {}
 
         self.application = AMOKVStore()
@@ -34,6 +34,7 @@ class Server(Node):
         self.local_garbage = 0
         self.garbage_map = {}
         self.proposal_replies = {}
+        self.skip_counter = {k: 0 for k in self.servers}
 
     def start_node(self):
         super().start_node()
@@ -158,6 +159,7 @@ class Server(Node):
     def handle_propose_timer(self):
         with self.lock:
             self.send_all_proposes()
+            self.logger.debug(f"Skips till {self.slot_out}: {self.skip_counter}")
             self.start_timer(ProposeTimer({}))
 
     def handle_heartbeat_timer(self):
@@ -201,6 +203,10 @@ class Server(Node):
     def is_leader(self, server, i):
         with self.lock:
             return self.tiling[i % self.tiling_len] == self.servers.index(server)
+    
+    def get_leader(self, i):
+        with self.lock:
+            return self.servers[self.tiling[i % self.tiling_len]]
 
     def executeAll(self):
         with self.lock:
@@ -214,6 +220,8 @@ class Server(Node):
                         }
                     )
                     self.send_message(response, self.log[i][0]["client"])
+                else:
+                    self.skip_counter[self.get_leader(i)] += 1
                 i += 1
             self.slot_out = i
 
