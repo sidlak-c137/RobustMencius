@@ -46,25 +46,8 @@ def main():
         fh = logging.FileHandler(args.log)
         logger.addHandler(fh)
 
-    match args.config:
-        case "three_clients_three_servers":
-            config = Configs().three_clients_three_servers()
-        case "single_client_single_server":
-            config = Configs().single_client_single_server()
-        case "two_clients_single_server":
-            config = Configs().two_clients_single_server()
-        case "single_client_single_server_cl":
-            config = Configs().single_client_single_server_cl()
-        case "three_clients_three_servers_cl":
-            config = Configs().three_clients_three_servers_cl()
-        case "three_clients_three_servers_cl_slow_0":
-            config = Configs().three_clients_three_servers_cl_slow_0()
-        case "three_clients_three_servers_cl_slow_1":
-            config = Configs().three_clients_three_servers_cl_slow_1()
-        case "three_clients_three_servers_cl_slow_2":
-            config = Configs().three_clients_three_servers_cl_slow_2()
-        case _:
-            raise ValueError("Invalid config")
+    config = getattr(Configs(), args.config)()
+
     servers = []
     for k in config:
         if k.startswith("server"):
