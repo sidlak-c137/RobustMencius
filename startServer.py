@@ -11,16 +11,16 @@ import os
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "-n", "--name", type=str, required=True, help="The name of the client"
+        "-n", "--name", type=str, required=True, help="The name of the server"
     )
     parser.add_argument(
-        "-t", "--type", type=str, required=True, help="The type of the client"
+        "-t", "--type", type=str, required=True, help="The type of the server"
     )
     parser.add_argument(
         "-c", "--config", type=str, required=False, help="The config"
     )
     parser.add_argument(
-        "-g", "--debug", type=str, required=False, help="The name of the client"
+        "-g", "--debug", type=str, required=False, help="The name of the server"
     )
     parser.add_argument(
         "-l", "--log", type=str, required=False, help="The name of the file to log to"
