@@ -170,7 +170,9 @@ class Server(Node):
     def handle_propose_timer(self):
         with self.lock:
             self.send_all_proposes()
+            self.broadcast_message(Ping({"sender": self.name}), self.servers_minus_self)
             self.start_timer(ProposeTimer({}))
+            self.logger.info(f"timer: {self.heartbeat_timer}")
 
     def handle_heartbeat_timer(self):
         with self.lock:
