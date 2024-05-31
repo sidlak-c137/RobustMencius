@@ -175,6 +175,7 @@ class Server(Node):
                         probs[i] = heartbeat_timer[self.servers[i]][2] / heartbeat_timer[self.servers[i]][1]
                 probs = [1 / p for p in probs]
                 probs = [p / sum(probs) for p in probs]
+                self.logger.info(f"probs: {probs}")
                 self.tilings[max(self.tilings.keys()) + self.M] = self.generate_random_list_with_probabilities([i for i in range(self.N)], probs, 100)
                 self.tiling_lens = {k: len(self.tilings[k]) for k in self.tilings}
 
@@ -292,16 +293,41 @@ class Server(Node):
         if not np.isclose(sum(probabilities), 1.0):
             raise ValueError("Probabilities must sum to 1.")
         
-        # Step 1: Start with each number appearing at least once
-        result = list(numbers)
-        
-        # Step 2: Generate additional numbers based on the probabilities
-        additional_length = total_length - len(numbers)
-        if additional_length > 0:
-            additional_numbers = np.random.choice(numbers, size=additional_length, p=probabilities)
-            result.extend(additional_numbers)
-        
-        # Step 3: Shuffle the result to ensure randomness
-        np.random.shuffle(result)
-        
+        probabilities = np.array(probabilities)
+        expected_counts = probabilities * total_length
+        integer_counts = np.floor(expected_counts).astype(int)
+        result = self.generate(integer_counts.tolist())
+
         return result
+
+    def generate(self, item_counts):
+        '''item_counts is a list of counts of "types" of items. E.g., [3, 1, 0, 2] represents
+            a list containing [1, 1, 1, 2, 4, 4] (3 types of items/distinct values). Generate
+            a new list with evenly spaced values.'''
+        # Sort number of occurrences by decreasing value.
+        item_counts.sort(reverse=True)
+        # Count the total elements in the final list.
+        unplaced = sum(item_counts)
+        # Create the final list.
+        placements = [None] * unplaced
+
+        # For each type of item, place it into the list item_count times.
+        for item_type, item_count in enumerate(item_counts):
+            # The number of times the item has already been placed
+            instance = 0
+            # Evenly divide the item amongst the remaining unused spaces, starting with
+            # the first unused space encountered.
+            # blank_count is the number of unused spaces seen so far and is reset for each
+            # item type.
+            blank_count = -1
+            for position in range(len(placements)):
+                if placements[position] is None:
+                    blank_count += 1
+                    # Use an anti-aliasing technique to prevent bunching of values.
+                    if blank_count * item_count // unplaced == instance:
+                        placements[position] = item_type
+                        instance += 1
+            # Update the count of number of unplaced items.
+            unplaced -= item_count
+
+        return placements

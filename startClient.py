@@ -1,7 +1,7 @@
 from mencius.client import Client as MenciusClient
 from simple.client import Client as SimpleClient
 from multipaxos.client import Client as MultipaxosClient
-from robust_mencius.client import Client as RobustMenciusClient
+from mencius_physicaltime.client import Client as RobustMenciusClient
 from config import Configs
 import argparse
 import logging
