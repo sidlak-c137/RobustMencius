@@ -62,14 +62,13 @@ class Heartbeat(Message):
         if not proto_args == set(args.keys()):
             raise ValueError("Heartbeat arguments must be: {}".format(proto_args))
 
-class HeartbeatReply(Message):
+class Ping(Message):
     def __init__(self, args: dict = {}):
-        super().__init__("HeartbeatReply", args)
+        super().__init__("Ping", args)
         proto_args = set(
             {
-                "slot_out": "Slot out",
                 "sender": "Sender name",
             }
         )
         if not proto_args == set(args.keys()):
-            raise ValueError("HeartbeatReply arguments must be: {}".format(proto_args))
+            raise ValueError("Ping arguments must be: {}".format(proto_args))

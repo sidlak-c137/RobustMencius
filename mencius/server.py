@@ -1,7 +1,7 @@
 import time
 from .utils import Node
 from .kvstore import AMOKVStore
-from .messages import ProposeRequest, Response, ProposeReply, Heartbeat, HeartbeatReply
+from .messages import ProposeRequest, Response, ProposeReply, Heartbeat, Ping
 from .timers import HeartbeatCheckTimer, HeartbeatTimer, ProposeTimer
 import threading
 
@@ -17,7 +17,7 @@ class Server(Node):
             "ProposeRequest": self.handle_propose_request,
             "ProposeReply": self.handle_propose_reply,
             "Heartbeat": self.handle_heartbeat,
-            "HeartbeatReply": self.handle_heartbeat_reply,
+            "Ping": self.handle_ping,
         }
         self.timers = {
             "HeartbeatTimer": self.handle_heartbeat_timer,
@@ -105,7 +105,9 @@ class Server(Node):
                     sender,
                 )
 
-    def handle_propose_reply(self, slot: int, slot_out: int, skip_till: int, sender: str):
+    def handle_propose_reply(
+        self, slot: int, slot_out: int, skip_till: int, sender: str
+    ):
         with self.lock:
             while skip_till >= self.slot_out:
                 skip_till = self.get_prev_slot(sender, skip_till)
@@ -138,7 +140,6 @@ class Server(Node):
                             self.servers_minus_self,
                         )
 
-
     def handle_heartbeat(self, log: dict, slot_out: int, sender: str):
         with self.lock:
             self.received_heartbeat = True
@@ -151,6 +152,9 @@ class Server(Node):
             self.garbage_map[sender] = max(self.garbage_map.get(sender, 0), slot_out)
             self.garbage_map[self.name] = self.slot_out
             self.garbage_collect(self.get_min_slot())
+
+    def handle_ping(self, sender: str):
+        with self.lock:
             if self.heartbeat_timer[sender] is None:
                 self.heartbeat_timer[sender] = (time.time(), 0, 0)
             else:
@@ -158,19 +162,17 @@ class Server(Node):
                 self.heartbeat_timer[sender] = (
                     time,
                     self.heartbeat_timer[sender][1] + 1,
-                    self.heartbeat_timer[sender][2] + time - self.heartbeat_timer[sender][0],
+                    self.heartbeat_timer[sender][2]
+                    + time
+                    - self.heartbeat_timer[sender][0],
                 )
-
-
-    def handle_heartbeat_reply(self, slot_out: int, sender: str):
-        with self.lock:
-            self.garbage_map[sender] = max(self.garbage_map.get(sender, 0), slot_out)
-            self.garbage_collect(self.get_min_slot())
 
     def handle_propose_timer(self):
         with self.lock:
             self.send_all_proposes()
+            self.broadcast_message(Ping({"sender": self.name}), self.servers_minus_self)
             self.start_timer(ProposeTimer({}))
+            self.logger.info(f"timer: {self.heartbeat_timer}")
 
     def handle_heartbeat_timer(self):
         with self.lock:
@@ -186,7 +188,6 @@ class Server(Node):
                 self.servers_minus_self,
             )
             self.start_timer(HeartbeatTimer({}))
-            self.logger.info(f"Heartbeat Timer: {self.heartbeat_timer}")
 
     # Utils
     def get_prev_slot(self, server, i):
