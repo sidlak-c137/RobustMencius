@@ -208,29 +208,29 @@ class Server(Node):
 
     # Utils
     def get_prev_slot(self, server, i):
-        curr_tiling = i // self.M * self.M
+        curr_tiling = max(i // self.M * self.M, 0)
         idx = self.servers.index(server)
         mod = i % self.tiling_lens[curr_tiling]
         i -= 1
-        curr_tiling = i // self.M * self.M
+        curr_tiling = max(i // self.M * self.M, 0)
         while (i % self.tiling_lens[curr_tiling]) != mod and self.tilings[curr_tiling][(i %self.M) % self.tiling_lens[curr_tiling]] != idx:
             i -= 1
-            curr_tiling = i // self.M * self.M
+            curr_tiling = max(i // self.M * self.M, 0)
         return i
 
     def get_next_slot(self, server, i):
-        curr_tiling = i // self.M * self.M
+        curr_tiling = max(i // self.M * self.M, 0)
         idx = self.servers.index(server)
         mod = i % self.tiling_lens[curr_tiling]
         i += 1
-        curr_tiling = i // self.M * self.M
+        curr_tiling = max(i // self.M * self.M, 0)
         while (i % self.tiling_lens[curr_tiling]) != mod and self.tilings[curr_tiling][(i % self.M) % self.tiling_lens[curr_tiling]] != idx:
             i += 1
-            curr_tiling = i // self.M * self.M
+            curr_tiling = max(i // self.M * self.M, 0)
         return i
 
     def is_leader(self, server, i):
-        curr_tiling = i // self.M * self.M
+        curr_tiling = max(i // self.M * self.M, 0)
         return self.tilings[curr_tiling][(i % self.M) % self.tiling_lens[curr_tiling]] == self.servers.index(server)
 
     def executeAll(self):
