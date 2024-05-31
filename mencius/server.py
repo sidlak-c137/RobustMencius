@@ -158,12 +158,12 @@ class Server(Node):
             if self.heartbeat_timer[sender] is None:
                 self.heartbeat_timer[sender] = (time.time(), 0, 0)
             else:
-                time = time.time()
+                t = time.time()
                 self.heartbeat_timer[sender] = (
-                    time,
+                    t,
                     self.heartbeat_timer[sender][1] + 1,
                     self.heartbeat_timer[sender][2]
-                    + time
+                    + t
                     - self.heartbeat_timer[sender][0],
                 )
 
