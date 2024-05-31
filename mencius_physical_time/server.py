@@ -5,6 +5,7 @@ from .kvstore import AMOKVStore
 from .messages import ProposeRequest, Response, ProposeReply, Heartbeat, Ping
 from .timers import HeartbeatCheckTimer, HeartbeatTimer, ProposeTimer
 import threading
+import time
 
 
 class Server(Node):

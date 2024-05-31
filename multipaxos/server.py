@@ -12,6 +12,7 @@ from .messages import (
 )
 from .timers import HeartbeatCheckTimer, HeartbeatTimer, PrepareTimer, ProposeTimer
 import threading
+import time
 
 
 class Server(Node):
