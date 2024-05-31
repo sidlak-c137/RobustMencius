@@ -68,6 +68,7 @@ class Ping(Message):
         proto_args = set(
             {
                 "sender": "Sender name",
+                "tilings": "Tilings",
             }
         )
         if not proto_args == set(args.keys()):
