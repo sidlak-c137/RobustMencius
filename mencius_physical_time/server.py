@@ -1,4 +1,5 @@
 import time
+import numpy as np
 from .utils import Node
 from .kvstore import AMOKVStore
 from .messages import ProposeRequest, Response, ProposeReply, Heartbeat, Ping
@@ -12,6 +13,7 @@ class Server(Node):
         self.servers = servers
         self.servers_minus_self = [server for server in servers if server != name]
         self.N = len(servers)
+        self.M = 1000
         self.functions = {
             "Request": self.handle_request,
             "ProposeRequest": self.handle_propose_request,
@@ -24,8 +26,8 @@ class Server(Node):
             "ProposeTimer": self.handle_propose_timer,
         }
 
-        self.tiling = self.config["tiling"]
-        self.tiling_len = len(self.tiling)
+        self.tilings = {0: [0, 1, 2]}
+        self.tiling_lens = {k: len(self.tilings[k]) for k in self.tilings}
         self.log = {}
 
         self.application = AMOKVStore()
@@ -42,10 +44,16 @@ class Server(Node):
         self.start_timer(ProposeTimer({}))
 
     def handle_message(self, message):
-        self.functions[message.message_type](**message.args)
+        with self.lock:
+            if "wait" in self.config[self.name]:
+                    time.sleep(self.config[self.name]["wait"])
+            self.functions[message.message_type](**message.args)
 
     def handle_timer(self, timer):
-        self.timers[timer.timer_type](**timer.args)
+        with self.lock:
+            if "wait" in self.config[self.name]:
+                    time.sleep(self.config[self.name]["wait"])
+            self.timers[timer.timer_type](**timer.args)
 
     def handle_request(self, AMOCommand: dict):
         with self.lock:
@@ -153,8 +161,24 @@ class Server(Node):
             self.garbage_map[self.name] = self.slot_out
             self.garbage_collect(self.get_min_slot())
 
-    def handle_ping(self, sender: str):
+    def handle_ping(self, sender: str, tilings: dict, heartbeat_timer: dict):
         with self.lock:
+            if len(tilings) > len(self.tilings):
+                self.tilings = tilings
+                self.tiling_lens = {k: len(self.tilings[k]) for k in self.tilings}
+            if self.servers.index(self.name) == 0 and self.slot_in > max(self.tilings.keys()) + self.M // 2:
+                probs = [0] * self.N
+                for i in range(self.N):
+                    if self.heartbeat_timer[self.servers[i]] is not None:
+                        probs[i] = self.heartbeat_timer[self.servers[i]][2] / self.heartbeat_timer[self.servers[i]][1]
+                    else:
+                        probs[i] = heartbeat_timer[self.servers[i]][2] / heartbeat_timer[self.servers[i]][1]
+                probs = [1 / p for p in probs]
+                probs = [p / sum(probs) for p in probs]
+                self.logger.info(f"probs: {probs}")
+                self.tilings[max(self.tilings.keys()) + self.M] = self.generate_random_list_with_probabilities([i for i in range(self.N)], probs, 100)
+                self.tiling_lens = {k: len(self.tilings[k]) for k in self.tilings}
+
             if self.heartbeat_timer[sender] is None:
                 self.heartbeat_timer[sender] = (time.time(), 0, 0)
             else:
@@ -170,9 +194,9 @@ class Server(Node):
     def handle_propose_timer(self):
         with self.lock:
             self.send_all_proposes()
-            self.broadcast_message(Ping({"sender": self.name}), self.servers_minus_self)
+            self.broadcast_message(Ping({"sender": self.name, "tilings": self.tilings, "heartbeat_timer": self.heartbeat_timer}), self.servers_minus_self)
             self.start_timer(ProposeTimer({}))
-            self.logger.info(f"timer: {self.heartbeat_timer}")
+            self.logger.info(f"tilings: {self.tilings}")
 
     def handle_heartbeat_timer(self):
         with self.lock:
@@ -191,30 +215,30 @@ class Server(Node):
 
     # Utils
     def get_prev_slot(self, server, i):
-        with self.lock:
-            idx = self.servers.index(server)
-            mod = i % self.tiling_len
+        curr_tiling = max(i // self.M * self.M, 0)
+        idx = self.servers.index(server)
+        mod = i % self.tiling_lens[curr_tiling]
+        i -= 1
+        curr_tiling = max(i // self.M * self.M, 0)
+        while (i % self.tiling_lens[curr_tiling]) != mod and self.tilings[curr_tiling][(i %self.M) % self.tiling_lens[curr_tiling]] != idx:
             i -= 1
-            while (i % self.tiling_len) != mod and self.tiling[
-                i % self.tiling_len
-            ] != idx:
-                i -= 1
-            return i
+            curr_tiling = max(i // self.M * self.M, 0)
+        return i
 
     def get_next_slot(self, server, i):
-        with self.lock:
-            idx = self.servers.index(server)
-            mod = i % self.tiling_len
+        curr_tiling = max(i // self.M * self.M, 0)
+        idx = self.servers.index(server)
+        mod = i % self.tiling_lens[curr_tiling]
+        i += 1
+        curr_tiling = max(i // self.M * self.M, 0)
+        while (i % self.tiling_lens[curr_tiling]) != mod and self.tilings[curr_tiling][(i % self.M) % self.tiling_lens[curr_tiling]] != idx:
             i += 1
-            while (i % self.tiling_len) != mod and self.tiling[
-                i % self.tiling_len
-            ] != idx:
-                i += 1
-            return i
+            curr_tiling = max(i // self.M * self.M, 0)
+        return i
 
     def is_leader(self, server, i):
-        with self.lock:
-            return self.tiling[i % self.tiling_len] == self.servers.index(server)
+        curr_tiling = max(i // self.M * self.M, 0)
+        return self.tilings[curr_tiling][(i % self.M) % self.tiling_lens[curr_tiling]] == self.servers.index(server)
 
     def executeAll(self):
         with self.lock:
@@ -262,3 +286,48 @@ class Server(Node):
             if len(self.garbage_map) == len(self.servers):
                 return min(self.garbage_map.values())
             return 0
+    
+    def generate_random_list_with_probabilities(self, numbers, probabilities, total_length):
+        if len(numbers) != len(probabilities):
+            raise ValueError("Numbers and probabilities must have the same length.")
+        if not np.isclose(sum(probabilities), 1.0):
+            raise ValueError("Probabilities must sum to 1.")
+        
+        probabilities = np.array(probabilities)
+        expected_counts = probabilities * total_length
+        integer_counts = np.floor(expected_counts).astype(int)
+        result = self.generate(integer_counts.tolist())
+
+        return result
+
+    def generate(self, item_counts):
+        '''item_counts is a list of counts of "types" of items. E.g., [3, 1, 0, 2] represents
+            a list containing [1, 1, 1, 2, 4, 4] (3 types of items/distinct values). Generate
+            a new list with evenly spaced values.'''
+        # Sort number of occurrences by decreasing value.
+        item_counts.sort(reverse=True)
+        # Count the total elements in the final list.
+        unplaced = sum(item_counts)
+        # Create the final list.
+        placements = [None] * unplaced
+
+        # For each type of item, place it into the list item_count times.
+        for item_type, item_count in enumerate(item_counts):
+            # The number of times the item has already been placed
+            instance = 0
+            # Evenly divide the item amongst the remaining unused spaces, starting with
+            # the first unused space encountered.
+            # blank_count is the number of unused spaces seen so far and is reset for each
+            # item type.
+            blank_count = -1
+            for position in range(len(placements)):
+                if placements[position] is None:
+                    blank_count += 1
+                    # Use an anti-aliasing technique to prevent bunching of values.
+                    if blank_count * item_count // unplaced == instance:
+                        placements[position] = item_type
+                        instance += 1
+            # Update the count of number of unplaced items.
+            unplaced -= item_count
+
+        return placements
