@@ -1,6 +1,7 @@
 from mencius.client import Client as MenciusClient
 from simple.client import Client as SimpleClient
 from multipaxos.client import Client as MultipaxosClient
+from mencius_physicaltime.client import Client as RobustMenciusClient
 from config import Configs
 import argparse
 import logging
@@ -57,6 +58,8 @@ def main():
             client = SimpleClient(args.name, config=config, logger=logger)
         case "multipaxos":
             client = MultipaxosClient(args.name, config=config, logger=logger)
+        case "robust_mencius":
+            client = RobustMenciusClient(args.name, config=config, logger=logger)
         case _:
             raise ValueError("Invalid type")
 

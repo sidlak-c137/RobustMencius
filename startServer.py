@@ -1,6 +1,7 @@
 from mencius.server import Server as MenciusServer
 from multipaxos.server import Server as MultipaxosServer
 from simple.server import Server as SimpleServer
+from mencius_physicaltime.server import Server as RobustMenciusServer
 
 from config import Configs
 import argparse
@@ -59,6 +60,8 @@ def main():
             server = SimpleServer(args.name, config=config, logger=logger)
         case "multipaxos":
             server = MultipaxosServer(args.name, config=config, logger=logger, servers=servers)
+        case "robust_mencius":
+            server = RobustMenciusServer(args.name, config=config, logger=logger, servers=servers)
         case _:
             raise ValueError("Invalid type")
     server.start_node()
