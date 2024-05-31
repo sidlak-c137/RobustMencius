@@ -1,5 +1,7 @@
 
 class Configs():
+    WORKLOAD_SIZE = 100000
+
     def single_client_single_server(self):
         '''
         C <--> S

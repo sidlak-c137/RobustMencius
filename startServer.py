@@ -1,7 +1,7 @@
 from mencius.server import Server as MenciusServer
 from multipaxos.server import Server as MultipaxosServer
 from simple.server import Server as SimpleServer
-from mencius_physicaltime.server import Server as RobustMenciusServer
+from mencius_physical_time.server import Server as RobustMenciusServer
 
 from config import Configs
 import argparse

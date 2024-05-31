@@ -1,7 +1,7 @@
 from mencius.client import Client as MenciusClient
 from simple.client import Client as SimpleClient
 from multipaxos.client import Client as MultipaxosClient
-from mencius_physicaltime.client import Client as RobustMenciusClient
+from mencius_physical_time.client import Client as RobustMenciusClient
 from config import Configs
 import argparse
 import logging
@@ -65,7 +65,7 @@ def main():
 
     client.start_node()
     server = config[args.name]["publish"][0][0]
-    for i in range(2000):
+    for i in range(Configs.WORKLOAD_SIZE):
         client.send_request(
             {
                 "type": "PUT",
