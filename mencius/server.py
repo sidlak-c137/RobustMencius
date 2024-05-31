@@ -42,10 +42,16 @@ class Server(Node):
         self.start_timer(ProposeTimer({}))
 
     def handle_message(self, message):
-        self.functions[message.message_type](**message.args)
+        with self.lock:
+            if "wait" in self.config[self.name]:
+                    time.sleep(self.config[self.name]["wait"])
+            self.functions[message.message_type](**message.args)
 
     def handle_timer(self, timer):
-        self.timers[timer.timer_type](**timer.args)
+        with self.lock:
+            if "wait" in self.config[self.name]:
+                    time.sleep(self.config[self.name]["wait"])
+            self.timers[timer.timer_type](**timer.args)
 
     def handle_request(self, AMOCommand: dict):
         with self.lock:
