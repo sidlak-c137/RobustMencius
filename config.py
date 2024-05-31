@@ -1,6 +1,6 @@
 
 class Configs():
-    WORKLOAD_SIZE = 100000
+    WORKLOAD_SIZE = 2000
 
     def single_client_single_server(self):
         '''
