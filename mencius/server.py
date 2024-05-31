@@ -1,3 +1,4 @@
+import time
 from .utils import Node
 from .kvstore import AMOKVStore
 from .messages import ProposeRequest, Response, ProposeReply, Heartbeat, HeartbeatReply
@@ -34,7 +35,7 @@ class Server(Node):
         self.local_garbage = 0
         self.garbage_map = {}
         self.proposal_replies = {}
-        self.skip_counter = {k: 0 for k in self.servers}
+        self.heartbeat_timer = {k: None for k in self.servers}
 
     def start_node(self):
         super().start_node()
@@ -89,7 +90,6 @@ class Server(Node):
                 for i in range(old_slot, self.slot_in):
                     if self.is_leader(self.name, i):
                         self.log[i] = (None, "CHOSEN")
-                        self.skip_counter[self.name] += 1
                 self.executeAll()
                 self.garbage_map[self.name] = self.slot_out
                 self.garbage_collect(self.get_min_slot())
@@ -111,7 +111,6 @@ class Server(Node):
                 skip_till = self.get_prev_slot(sender, skip_till)
                 if skip_till not in self.log and skip_till >= self.slot_out:
                     self.log[skip_till] = (None, "CHOSEN")
-                    self.skip_counter[sender] += 1
             self.executeAll()
             self.garbage_map[self.name] = self.slot_out
             self.garbage_map[sender] = max(self.garbage_map.get(sender, 0), slot_out)
@@ -152,6 +151,16 @@ class Server(Node):
             self.garbage_map[sender] = max(self.garbage_map.get(sender, 0), slot_out)
             self.garbage_map[self.name] = self.slot_out
             self.garbage_collect(self.get_min_slot())
+            if self.heartbeat_timer[sender] is None:
+                self.heartbeat_timer[sender] = (time.time(), 0, 0)
+            else:
+                time = time.time()
+                self.heartbeat_timer[sender] = (
+                    time,
+                    self.heartbeat_timer[sender][1] + 1,
+                    self.heartbeat_timer[sender][2] + time - self.heartbeat_timer[sender][0],
+                )
+
 
     def handle_heartbeat_reply(self, slot_out: int, sender: str):
         with self.lock:
@@ -161,7 +170,6 @@ class Server(Node):
     def handle_propose_timer(self):
         with self.lock:
             self.send_all_proposes()
-            self.logger.debug(f"Skips till {self.slot_out}: {self.skip_counter}")
             self.start_timer(ProposeTimer({}))
 
     def handle_heartbeat_timer(self):
@@ -178,6 +186,7 @@ class Server(Node):
                 self.servers_minus_self,
             )
             self.start_timer(HeartbeatTimer({}))
+            self.logger.info(f"Heartbeat Timer: {self.heartbeat_timer}")
 
     # Utils
     def get_prev_slot(self, server, i):
