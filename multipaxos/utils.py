@@ -95,6 +95,8 @@ class Node:
         class Timer(threading.Thread):
             def run(thread):
                 time.sleep(timer.ms / 1000)
+                if "wait" in self.config[self.name]:
+                    time.sleep(self.config[self.name]["wait"])
                 self.handle_timer(timer)
 
         self.timer_thread = Timer()
