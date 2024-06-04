@@ -36,6 +36,12 @@ PLOTS_DIR = os.path.join(PARENT_DIR, 'experiments_plots')
 def main():
     first = True
 
+    # Aggregate latencies
+    latencies_trials = {}
+    throughputs_trials = {}
+    latencies_slow_trials = {}
+    throughputs_slow_trials = {}
+
     # Go into each benchmarked system
     for root, dirs, files in os.walk(RESULTS_DIR):
 
@@ -60,9 +66,20 @@ def main():
             latencies.append(latency_arr(timestamps))
             throughputs.append(throughput_arr(timestamps))
 
+        # Add to aggregate data sets
+        if ('slow' in sys_name):
+            throughputs_slow_trials.update({sys_name: throughputs})
+            latencies_slow_trials.update({sys_name: latencies})
+        else:
+            throughputs_trials.update({sys_name: throughputs})
+            latencies_trials.update({sys_name: latencies})
+
         # Plot latency and throughput
         plot_latency(latencies, sys_name)
         plot_throughput(throughputs, sys_name)
+
+    # BW Plots
+    box_whiskers_plot_latency(latencies_trials)
 
 
 def fetch_files(root, files):
@@ -169,6 +186,19 @@ def plot_throughput(throughput, name):
     plt.ylim(THROUGHPUT_MIN, THROUGHPUT_MAX)
     plt.yticks(range(THROUGHPUT_MIN, THROUGHPUT_MAX + THROUGHPUT_INCREMENT, THROUGHPUT_INCREMENT))
     plt.savefig(os.path.join(PLOTS_DIR, f'{name}_throughput.png'))
+
+
+def box_whiskers_plot_latency(latency_trials):
+    plt.figure(figsize=(10, 6))
+
+    for latency_name in latency_trials:
+        latency_values = latency_trials[latency_name]
+        y_values = [val[1] for val in latency_values]
+        plt.boxplot(y_values)
+
+    plt.title(f'Box and Whiskers Plot of Latency')
+    plt.ylabel('Latencies')
+    plt.savefig(os.path.join(PLOTS_DIR, f'latency_BWplot.png'))
 
 
 if __name__ == "__main__":
