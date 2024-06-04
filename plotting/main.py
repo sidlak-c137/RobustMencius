@@ -1,15 +1,27 @@
 import os
 import matplotlib.pyplot as plt
 
+# Latency graph minimum and maximum values, in ms (for y-axis)
+LATENCY_MIN = 20
+LATENCY_MAX = 100
+LATENCY_INCREMENT = 10
+
+# Throughput graph minimum and maximum values, in ms (for y-axis)
+THROUGHPUT_MIN = 0
+THROUGHPUT_MAX = 30
+THROUGHPUT_INCREMENT = 5
+
 # The time, in ms, to check throughput for plotting
 THROUGHPUT_INTERVAL = 1000
 
 # Whether or not we trim, and if so, how much to trim
-TRIM = False
-TRIM_AMOUNT = 250
+LATENCY_TRIM = True
+L_TRIM_AMOUNT = 50
+THROUGHPUT_TRIM = False
+T_TRIM_AMOUNT = 50
 
 # The columns in the data that are floats
-FLOAT_COLS = [0] 
+FLOAT_COLS = [0]
 
 # The file naming format
 def BENCHMARK_FILE_FORMAT(file):
@@ -51,22 +63,22 @@ def main():
         # Plot latency and throughput
         plot_latency(latencies, sys_name)
         plot_throughput(throughputs, sys_name)
-        
+
 
 def fetch_files(root, files):
     txt_files = []
-    
+
     for file in files:
         if BENCHMARK_FILE_FORMAT(file):
             file_path = os.path.join(root, file)
             with open(file_path, 'r') as f:
                 file_content = f.read()
             txt_files.append((file_path, file_content))
-    
+
     return txt_files
 
 
-def tablify(text): 
+def tablify(text):
     return [row.split() for row in text.strip().split('\n')]
 
 
@@ -76,13 +88,13 @@ def clean_data(data):
 
     def cols_to_float(arr, cols):
         return [[float(row[i]) if i in cols else row[i] for i in range(len(row))] for row in arr]
-    
+
     def drop_second_col(arr):
         return [row[0] for row in arr]
-    
+
     def col1_s_to_ms(arr):
         return [x * 1000 for x in arr]
-    
+
     return col1_s_to_ms(drop_second_col(cols_to_float(purge_non_data(data), FLOAT_COLS)))
 
 
@@ -90,7 +102,7 @@ def latency_arr(arr):
     latency = []
     for i in range(1, len(arr)):
         latency.append([i, arr[i] - arr[i-1]])
-    return trim_warmup_cooldown(latency)
+    return latency_trim(latency)
 
 
 def throughput_arr(arr):
@@ -100,54 +112,62 @@ def throughput_arr(arr):
 
     throughput = {}
     for timestamp in adjusted_timestamps:
-        second = timestamp // THROUGHPUT_INTERVAL  
+        second = timestamp // THROUGHPUT_INTERVAL
         if second in throughput:
             throughput[second] += 1
         else:
             throughput[second] = 1
 
-    return trim_warmup_cooldown([[key, value] for key, value in throughput.items()])
+    return throughput_trim([[key, value] for key, value in throughput.items()])
 
 
-def trim_warmup_cooldown(arr):
-    if not TRIM: return arr
-    else: return arr[TRIM_AMOUNT:-TRIM_AMOUNT] if len(arr) > (2 * TRIM_AMOUNT) else []
+def latency_trim(arr):
+    if not LATENCY_TRIM: return arr
+    else: return arr[L_TRIM_AMOUNT:-L_TRIM_AMOUNT] if len(arr) > (2 * L_TRIM_AMOUNT) else []
+
+
+def throughput_trim(arr):
+    if not THROUGHPUT_TRIM: return arr
+    else: return arr[T_TRIM_AMOUNT:-T_TRIM_AMOUNT] if len(arr) > (2 * T_TRIM_AMOUNT) else []
 
 
 def plot_latency(latency, name):
     colors = ['r', 'g', 'b', 'c', 'm', 'y', 'k']
-    
+
     plt.figure(figsize=(10, 6))
-    
+
     for i, data in enumerate(latency):
-        x = [point[0] for point in data] 
+        x = [point[0] for point in data]
         y = [point[1] for point in data]
-        plt.plot(x, y, color=colors[i % len(colors)], label=f'Client {i+1}') 
-    
+        plt.plot(x, y, color=colors[i % len(colors)], label=f'Client {i+1}')
+
     plt.xlabel('Request Number')
     plt.ylabel('Latency')
     plt.title(f'Latency Plot for {name}')
     plt.legend()
     plt.grid(True)
-    plt.yscale('log')
+    plt.ylim(LATENCY_MIN, LATENCY_MAX)
+    plt.yticks(range(LATENCY_MIN, LATENCY_MAX + LATENCY_INCREMENT, LATENCY_INCREMENT))
     plt.savefig(os.path.join(PLOTS_DIR, f'{name}_latency.png'))
 
 
 def plot_throughput(throughput, name):
     colors = ['r', 'g', 'b', 'c', 'm', 'y', 'k']
-    
+
     plt.figure(figsize=(10, 6))
-    
+
     for i, data in enumerate(throughput):
-        x = [point[0] for point in data] 
+        x = [point[0] for point in data]
         y = [point[1] for point in data]
-        plt.plot(x, y, color=colors[i % len(colors)], label=f'Client {i+1}') 
-    
+        plt.plot(x, y, color=colors[i % len(colors)], label=f'Client {i+1}')
+
     plt.xlabel(f'Time (in units of {THROUGHPUT_INTERVAL} ms)')
     plt.ylabel('Throughput')
     plt.title(f'Throughput Plot for {name}')
     plt.legend()
     plt.grid(True)
+    plt.ylim(THROUGHPUT_MIN, THROUGHPUT_MAX)
+    plt.yticks(range(THROUGHPUT_MIN, THROUGHPUT_MAX + THROUGHPUT_INCREMENT, THROUGHPUT_INCREMENT))
     plt.savefig(os.path.join(PLOTS_DIR, f'{name}_throughput.png'))
 
 
