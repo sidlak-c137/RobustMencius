@@ -1,5 +1,6 @@
 import os
 import matplotlib.pyplot as plt
+import numpy as np
 
 # Latency graph minimum and maximum values, in ms (for y-axis)
 LATENCY_MIN = 20
@@ -79,7 +80,8 @@ def main():
         plot_throughput(throughputs, sys_name)
 
     # BW Plots
-    box_whiskers_plot_latency(latencies_trials)
+    box_whiskers_plot_latency(latencies_trials, "default")
+    box_whiskers_plot_latency(latencies_slow_trials, "slow")
 
 
 def fetch_files(root, files):
@@ -188,17 +190,24 @@ def plot_throughput(throughput, name):
     plt.savefig(os.path.join(PLOTS_DIR, f'{name}_throughput.png'))
 
 
-def box_whiskers_plot_latency(latency_trials):
-    plt.figure(figsize=(10, 6))
+def box_whiskers_plot_latency(latency_trials, suffix):
+    plt.figure(figsize=(20, 6))
+
+    data = []
+    labels = []
 
     for latency_name in latency_trials:
         latency_values = latency_trials[latency_name]
-        y_values = [val[1] for val in latency_values]
-        plt.boxplot(y_values)
+        for i in range(len(latency_values)):
+            data.append(latency_values[i][1])
+            labels.append(f'{latency_name} client {i + 1}')
+
+    plt.boxplot(data, tick_labels = labels)
+    plt.tight_layout()
 
     plt.title(f'Box and Whiskers Plot of Latency')
     plt.ylabel('Latencies')
-    plt.savefig(os.path.join(PLOTS_DIR, f'latency_BWplot.png'))
+    plt.savefig(os.path.join(PLOTS_DIR, f'latency_BWplot_{suffix}.png'))
 
 
 if __name__ == "__main__":
