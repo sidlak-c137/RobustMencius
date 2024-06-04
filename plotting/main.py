@@ -83,7 +83,7 @@ def main():
     box_whiskers_plot_latency(latencies_trials, "default")
     box_whiskers_plot_latency(latencies_slow_trials, "slow")
     box_whiskers_plot_throughput(throughputs_trials, "default")
-    box_whiskers_plot_throughput(throughputs_slow_trials, "slow")
+    box_whiskers_plot_throughput1(throughputs_slow_trials, "slow")
 
 
 def fetch_files(root, files):
@@ -229,6 +229,41 @@ def box_whiskers_plot_throughput(throughput_trials, suffix):
 
     plt.title(f'Box and Whiskers Plot of Throughput')
     plt.ylabel('Throughput')
+    plt.savefig(os.path.join(PLOTS_DIR, f'throughput_BWplot_{suffix}.png'))
+
+def box_whiskers_plot_throughput1(throughput_trials, suffix):
+    grouped_data = {k: [[i[1] for i in j][50:200] for j in v] for k, v in throughput_trials.items()}
+    # Some of the data is in the wrong order, so we need to swap them
+    grouped_data['robust_mencius_slow'][1], grouped_data['robust_mencius_slow'][2] = grouped_data['robust_mencius_slow'][2], grouped_data['robust_mencius_slow'][1]
+    fig, ax = plt.subplots(figsize=(15, 8))
+
+    # Define colors for each protocol
+    colors = ['lightblue', 'lightgreen', 'lightcoral']
+
+    # Create boxplots
+    positions = []
+    labels = []
+    for i, (group, color) in enumerate(zip(grouped_data, colors)):
+        pos = [i * 8 + j * 3 + 1 for j in range(len(grouped_data[group]))]  # Calculate positions with spacing
+        positions.extend(pos)
+        labels.extend([f'Client {j+1}' for j in range(len(grouped_data[group]))])
+        box = ax.boxplot(grouped_data[group], positions=pos, widths=2, patch_artist=True)
+        for patch in box['boxes']:
+            patch.set_facecolor(color)
+
+    # Customize the plot
+    ax.set_xticks(positions)
+    ax.set_xticklabels(labels, fontsize=12)
+    ax.set_title('Throughputs per Client per Protocol', fontsize=16)
+    ax.set_xlabel('Protocols', fontsize=14)
+    ax.set_ylabel('Throughput (Req/sec)', fontsize=14)
+    ax.grid(True, linestyle='--', alpha=0.7)
+
+    # Add a legend
+    handles = [plt.Line2D([0], [0], color=color, lw=4) for color in colors]
+    ax.legend(handles, grouped_data.keys(), title='Protocols', loc='lower right', fontsize=12, title_fontsize='13')
+
+    plt.tight_layout()
     plt.savefig(os.path.join(PLOTS_DIR, f'throughput_BWplot_{suffix}.png'))
 
 
