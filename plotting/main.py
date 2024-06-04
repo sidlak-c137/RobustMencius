@@ -82,6 +82,8 @@ def main():
     # BW Plots
     box_whiskers_plot_latency(latencies_trials, "default")
     box_whiskers_plot_latency(latencies_slow_trials, "slow")
+    box_whiskers_plot_throughput(throughputs_trials, "default")
+    box_whiskers_plot_throughput(throughputs_slow_trials, "slow")
 
 
 def fetch_files(root, files):
@@ -190,14 +192,14 @@ def plot_throughput(throughput, name):
     plt.savefig(os.path.join(PLOTS_DIR, f'{name}_throughput.png'))
 
 
-def box_whiskers_plot_latency(latency_trials, suffix):
+def box_whiskers_plot_latency(throughput_trials, suffix):
     plt.figure(figsize=(20, 6))
 
     data = []
     labels = []
 
-    for latency_name in latency_trials:
-        latency_values = latency_trials[latency_name]
+    for latency_name in throughput_trials:
+        latency_values = throughput_trials[latency_name]
         for i in range(len(latency_values)):
             data.append(latency_values[i][1])
             labels.append(f'{latency_name} client {i + 1}')
@@ -208,6 +210,26 @@ def box_whiskers_plot_latency(latency_trials, suffix):
     plt.title(f'Box and Whiskers Plot of Latency')
     plt.ylabel('Latencies')
     plt.savefig(os.path.join(PLOTS_DIR, f'latency_BWplot_{suffix}.png'))
+
+
+def box_whiskers_plot_throughput(throughput_trials, suffix):
+    plt.figure(figsize=(20, 6))
+
+    data = []
+    labels = []
+
+    for throughput_name in throughput_trials:
+        throughput_values = throughput_trials[throughput_name]
+        for i in range(len(throughput_values)):
+            data.append(throughput_values[i][1])
+            labels.append(f'{throughput_name} client {i + 1}')
+
+    plt.boxplot(data, tick_labels = labels)
+    plt.tight_layout()
+
+    plt.title(f'Box and Whiskers Plot of Throughput')
+    plt.ylabel('Throughput')
+    plt.savefig(os.path.join(PLOTS_DIR, f'throughput_BWplot_{suffix}.png'))
 
 
 if __name__ == "__main__":
