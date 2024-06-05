@@ -231,6 +231,7 @@ def box_whiskers_plot_throughput(throughput_trials, suffix):
     plt.ylabel('Throughput')
     plt.savefig(os.path.join(PLOTS_DIR, f'throughput_BWplot_{suffix}.png'))
 
+
 def box_whiskers_plot_throughput1(throughput_trials, suffix):
     grouped_data = {k: [[i[1] for i in j][50:200] for j in v] for k, v in throughput_trials.items()}
     # Some of the data is in the wrong order, so we need to swap them
