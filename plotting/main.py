@@ -234,8 +234,10 @@ def box_whiskers_plot_throughput(throughput_trials, suffix):
 
 def box_whiskers_plot_throughput1(throughput_trials, suffix):
     grouped_data = {k: [[i[1] for i in j][50:200] for j in v] for k, v in throughput_trials.items()}
+
     # Some of the data is in the wrong order, so we need to swap them
-    grouped_data['robust_mencius_slow'][1], grouped_data['robust_mencius_slow'][2] = grouped_data['robust_mencius_slow'][2], grouped_data['robust_mencius_slow'][1]
+    # grouped_data['multipaxos_slow'][1], grouped_data['multipaxos_slow'][2] = grouped_data['multipaxos_slow'][2], grouped_data['multipaxos_slow'][1]
+    # grouped_data['robust_mencius_slow'][1], grouped_data['robust_mencius_slow'][2] = grouped_data['robust_mencius_slow'][2], grouped_data['robust_mencius_slow'][1]
     fig, ax = plt.subplots(figsize=(15, 8))
 
     # Define colors for each protocol
