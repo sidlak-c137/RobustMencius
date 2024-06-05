@@ -209,11 +209,11 @@ def box_whiskers_plot_latency(throughput_trials, suffix):
 
     plt.title(f'Box and Whiskers Plot of Latency')
     plt.ylabel('Latencies')
-    plt.savefig(os.path.join(PLOTS_DIR, f'latency_BWplot_{suffix}.png'))
+    plt.savefig(os.path.join(PLOTS_DIR, f'latency_BWplot_{suffix}.png'), bbox_inches='tight')
 
 
 def box_whiskers_plot_throughput(throughput_trials, suffix):
-    plt.figure(figsize=(20, 6))
+    plt.figure(figsize=(25, 10))
 
     data = []
     labels = []
@@ -229,7 +229,7 @@ def box_whiskers_plot_throughput(throughput_trials, suffix):
 
     plt.title(f'Box and Whiskers Plot of Throughput')
     plt.ylabel('Throughput')
-    plt.savefig(os.path.join(PLOTS_DIR, f'throughput_BWplot_{suffix}.png'))
+    plt.savefig(os.path.join(PLOTS_DIR, f'throughput_BWplot_{suffix}.png'), bbox_inches='tight')
 
 
 def box_whiskers_plot_throughput1(throughput_trials, suffix):
