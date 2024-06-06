@@ -1,6 +1,7 @@
 import os
 import matplotlib.pyplot as plt
 import numpy as np
+import seaborn as sns
 
 # Latency graph minimum and maximum values, in ms (for y-axis)
 LATENCY_MIN = 20
@@ -84,6 +85,9 @@ def main():
     box_whiskers_plot_latency(latencies_slow_trials, "slow")
     box_whiskers_plot_throughput(throughputs_trials, "default")
     box_whiskers_plot_throughput1(throughputs_slow_trials, "slow")
+
+    # 99th Latency Plots
+    latency_dist_plot(latencies_slow_trials)
 
 
 def fetch_files(root, files):
@@ -268,6 +272,23 @@ def box_whiskers_plot_throughput1(throughput_trials, suffix):
 
     plt.tight_layout()
     plt.savefig(os.path.join(PLOTS_DIR, f'throughput_BWplot_{suffix}.png'))
+
+
+def latency_dist_plot(latency_trials):
+    plt.figure(figsize=(10, 6))
+
+    for trial_name in latency_trials:
+        trial = latency_trials[trial_name]
+        trials_unified = np.concatenate(trial, axis=0)
+        trials_second_col = trials_unified[:, 1:]
+        trials_sorted = trials_second_col[trials_second_col[:, 0].argsort()]
+        sns.lineplot(data=trials_sorted, label=trial_name)
+
+    plt.title("Line Graphs of Trial Data")
+    plt.xlabel("Index")
+    plt.ylabel("Values")
+    plt.legend()
+    plt.savefig(os.path.join(PLOTS_DIR, f'latency_distribution_slowtrials.png'))
 
 
 if __name__ == "__main__":
