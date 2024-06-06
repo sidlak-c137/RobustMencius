@@ -285,7 +285,7 @@ def latency_dist_plot(latency_trials):
         trials_sorted = trials_second_col[trials_second_col[:, 0].argsort()]
         sns.lineplot(data=trials_sorted)
 
-    plt.title("Line Graphs of Trial Data")
+    plt.title("Latency Distributions")
     plt.xlabel("Index")
     plt.ylabel("Values")
     plt.legend()
