@@ -276,13 +276,14 @@ def box_whiskers_plot_throughput1(throughput_trials, suffix):
 
 def latency_dist_plot(latency_trials):
     plt.figure(figsize=(10, 6))
+    palette = sns.color_palette("husl", len(latency_trials))
 
     for trial_name in latency_trials:
         trial = latency_trials[trial_name]
         trials_unified = np.concatenate(trial, axis=0)
         trials_second_col = trials_unified[:, 1:]
         trials_sorted = trials_second_col[trials_second_col[:, 0].argsort()]
-        sns.lineplot(data=trials_sorted, label=trial_name)
+        sns.lineplot(data=trials_sorted)
 
     plt.title("Line Graphs of Trial Data")
     plt.xlabel("Index")
